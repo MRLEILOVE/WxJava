@@ -103,6 +103,7 @@ public interface WxCpApiPathConsts {
     String GET_CHECKIN_MONTH_DATA = "/cgi-bin/checkin/getcheckin_monthdata";
     String GET_CHECKIN_SCHEDULE_DATA = "/cgi-bin/checkin/getcheckinschedulist";
     String SET_CHECKIN_SCHEDULE_DATA = "/cgi-bin/checkin/setcheckinschedulist";
+    String ADD_CHECK_IN_USER_FACE = "/cgi-bin/checkin/addcheckinuserface";
 
     /**
      * 审批
@@ -145,6 +146,8 @@ public interface WxCpApiPathConsts {
      * https://developer.work.weixin.qq.com/document/path/93654
      */
     String SPACE_CREATE = "/cgi-bin/wedrive/space_create";
+    String SPACE_RENAME = "/cgi-bin/wedrive/space_rename";
+    String SPACE_DISMISS = "/cgi-bin/wedrive/space_dismiss";
 
     /**
      * 审批流程引擎
@@ -328,6 +331,7 @@ public interface WxCpApiPathConsts {
 
     String SEND_MSG_ON_EVENT = "/cgi-bin/kf/send_msg_on_event";
     String CUSTOMER_BATCH_GET = "/cgi-bin/kf/customer/batchget";
+    String GET_CORP_STATISTIC = "/cgi-bin/kf/get_corp_statistic";
 
   }
 

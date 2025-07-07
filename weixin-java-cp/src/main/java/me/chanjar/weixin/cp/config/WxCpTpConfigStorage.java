@@ -147,6 +147,13 @@ public interface WxCpTpConfigStorage {
   String getCorpSecret();
 
   /**
+   * Sets provider secret.
+   *
+   * @param providerSecret the provider secret
+   */
+  void setProviderSecret(String providerSecret);
+
+  /**
    * 服务商secret
    *
    * @return the provider secret
@@ -256,8 +263,6 @@ public interface WxCpTpConfigStorage {
    * @param expiredInSeconds the expired in seconds
    */
   void updateAuthSuiteJsApiTicket(String authCorpId, String jsApiTicket, int expiredInSeconds);
-
-  ;
 
   /**
    * Is provider token expired boolean.

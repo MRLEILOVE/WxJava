@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import me.chanjar.weixin.common.util.json.WxGsonBuilder;
 
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * <pre>
@@ -21,12 +20,12 @@ import java.util.Date;
  * </pre>
  *
  * @author xiaoqiang
- * @date 2021-12-06
+ * created on  2021-12-06
  */
 @Data
 @NoArgsConstructor
 public class BatchDetailsResult implements Serializable {
-  public static final float serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
   @Override
   public String toString() {

@@ -3,23 +3,22 @@ package com.github.binarywang.wxpay.v3.auth;
 import com.github.binarywang.wxpay.config.WxPayHttpProxy;
 import com.github.binarywang.wxpay.util.HttpProxyUtils;
 import com.github.binarywang.wxpay.v3.Credentials;
-import com.github.binarywang.wxpay.v3.Validator;
 import com.github.binarywang.wxpay.v3.WxPayV3HttpClientBuilder;
 import com.github.binarywang.wxpay.v3.util.AesUtils;
 import com.github.binarywang.wxpay.v3.util.PemUtils;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxRuntimeException;
 import me.chanjar.weixin.common.util.json.GsonParser;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -28,9 +27,12 @@ import java.security.GeneralSecurityException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -44,7 +46,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
   /**
    * 证书下载地址
    */
-  private static final String CERT_DOWNLOAD_PATH = "https://api.mch.weixin.qq.com/v3/certificates";
+  private static final String CERT_DOWNLOAD_PATH = "/v3/certificates";
 
   /**
    * 上次更新时间
@@ -61,6 +63,8 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
   private final Credentials credentials;
 
   private final byte[] apiV3Key;
+
+  private String payBaseUrl ;
 
   private final ReentrantLock lock = new ReentrantLock();
 
@@ -91,18 +95,19 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
     private final int minutes;
   }
 
-  public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key) {
-    this(credentials, apiV3Key, TimeInterval.OneHour.getMinutes());
+  public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key, String payBaseUrl) {
+    this(credentials, apiV3Key, TimeInterval.OneHour.getMinutes(), payBaseUrl);
   }
 
-  public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key, int minutesInterval) {
-    this(credentials,apiV3Key,minutesInterval,null);
+  public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key, int minutesInterval, String payBaseUrl) {
+    this(credentials, apiV3Key, minutesInterval, payBaseUrl, null);
   }
 
-  public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key, int minutesInterval,WxPayHttpProxy wxPayHttpProxy) {
+  public AutoUpdateCertificatesVerifier(Credentials credentials, byte[] apiV3Key, int minutesInterval, String payBaseUrl, WxPayHttpProxy wxPayHttpProxy) {
     this.credentials = credentials;
     this.apiV3Key = apiV3Key;
     this.minutesInterval = minutesInterval;
+    this.payBaseUrl = payBaseUrl;
     this.wxPayHttpProxy = wxPayHttpProxy;
     //构造时更新证书
     try {
@@ -123,14 +128,14 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
    * 检查证书是否在有效期内，如果不在有效期内则进行更新
    */
   private void checkAndAutoUpdateCert() {
-    if (instant == null || instant.plus(minutesInterval, ChronoUnit.MINUTES).compareTo(Instant.now()) >= 0) {
+    if (instant == null || instant.plus(minutesInterval, ChronoUnit.MINUTES).compareTo(Instant.now()) <= 0) {
       if (lock.tryLock()) {
         try {
           autoUpdateCert();
           //更新时间
           instant = Instant.now();
         } catch (GeneralSecurityException | IOException e) {
-          log.warn("Auto update cert failed, exception = " + e);
+          log.warn("Auto update cert failed, exception = {}", e);
         } finally {
           lock.unlock();
         }
@@ -141,12 +146,7 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
   private void autoUpdateCert() throws IOException, GeneralSecurityException {
     WxPayV3HttpClientBuilder wxPayV3HttpClientBuilder = WxPayV3HttpClientBuilder.create()
       .withCredentials(credentials)
-      .withValidator(verifier == null ? new Validator() {
-        @Override
-        public boolean validate(CloseableHttpResponse response) throws IOException {
-          return true;
-        }
-      } : new WxPayValidator(verifier));
+      .withValidator(verifier == null ? response -> true : new WxPayValidator(verifier));
 
     //调用自定义扩展设置设置HTTP PROXY对象
     HttpProxyUtils.initHttpProxy(wxPayV3HttpClientBuilder,this.wxPayHttpProxy);
@@ -156,21 +156,21 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
 
     CloseableHttpClient httpClient = wxPayV3HttpClientBuilder.build();
 
-    HttpGet httpGet = new HttpGet(CERT_DOWNLOAD_PATH);
+    HttpGet httpGet = new HttpGet(this.payBaseUrl + CERT_DOWNLOAD_PATH);
     httpGet.addHeader("Accept", "application/json");
 
     CloseableHttpResponse response = httpClient.execute(httpGet);
     int statusCode = response.getStatusLine().getStatusCode();
     String body = EntityUtils.toString(response.getEntity());
-    if (statusCode == 200) {
+    if (statusCode == HttpStatus.SC_OK) {
       List<X509Certificate> newCertList = deserializeToCerts(apiV3Key, body);
       if (newCertList.isEmpty()) {
-        log.warn("Cert list is empty");
-        return;
+        throw new WxRuntimeException("Cert list is empty");
       }
       this.verifier = new CertificatesVerifier(newCertList);
     } else {
-      log.warn("Auto update cert failed, statusCode = " + statusCode + ",body = " + body);
+      log.warn("Auto update cert failed, statusCode = {},body = {}", statusCode, body);
+      throw new WxRuntimeException(this.getErrorMsg(body));
     }
   }
 
@@ -223,4 +223,11 @@ public class AutoUpdateCertificatesVerifier implements Verifier {
     return verifier.getValidCertificate();
   }
 
+  private String getErrorMsg(String body) {
+    return Optional
+      .ofNullable(GsonParser.parse(body).getAsJsonObject())
+      .map(resp -> resp.get("message"))
+      .map(JsonElement::getAsString)
+      .orElse("update cert failed");
+  }
 }

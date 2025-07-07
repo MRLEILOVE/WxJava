@@ -1,19 +1,25 @@
 package me.chanjar.weixin.cp.bean.message;
 
 import me.chanjar.weixin.common.api.WxConsts;
-import me.chanjar.weixin.cp.bean.message.WxCpXmlMessage;
 import me.chanjar.weixin.cp.constant.WxCpConsts;
 import me.chanjar.weixin.cp.util.xml.XStreamTransformer;
 import org.testng.annotations.Test;
 
 import static me.chanjar.weixin.cp.constant.WxCpConsts.EventType.TASKCARD_CLICK;
+import static me.chanjar.weixin.cp.constant.WxCpConsts.EventType.UPLOAD_MEDIA_JOB_FINISH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
+/**
+ * The type Wx cp xml message test.
+ */
 @Test
 public class WxCpXmlMessageTest {
 
+  /**
+   * Test from xml.
+   */
   public void testFromXml() {
 
     String xml = "<xml>"
@@ -63,10 +69,10 @@ public class WxCpXmlMessageTest {
     WxCpXmlMessage wxMessage = WxCpXmlMessage.fromXml(xml);
     assertEquals(wxMessage.getToUserName(), "toUser");
     assertEquals(wxMessage.getFromUserName(), "fromUser");
-    assertEquals(wxMessage.getCreateTime(), new Long(1348831860));
+    assertEquals(wxMessage.getCreateTime(), Long.valueOf(1348831860));
     assertEquals(wxMessage.getMsgType(), WxConsts.XmlMsgType.TEXT);
     assertEquals(wxMessage.getContent(), "this is a test");
-    assertEquals(wxMessage.getMsgId(), new Long(1234567890123456L));
+    assertEquals(wxMessage.getMsgId(), Long.valueOf(1234567890123456L));
     assertEquals(wxMessage.getPicUrl(), "this is a url");
     assertEquals(wxMessage.getMediaId(), "media_id");
     assertEquals(wxMessage.getFormat(), "Format");
@@ -86,7 +92,7 @@ public class WxCpXmlMessageTest {
     assertEquals(wxMessage.getPrecision().doubleValue(), 119.385040);
     assertEquals(wxMessage.getScanCodeInfo().getScanType(), "qrcode");
     assertEquals(wxMessage.getScanCodeInfo().getScanResult(), "1");
-    assertEquals(wxMessage.getSendPicsInfo().getCount(), new Long(1));
+    assertEquals(wxMessage.getSendPicsInfo().getCount(), Long.valueOf(1));
     assertEquals(wxMessage.getSendPicsInfo().getPicList().get(0).getPicMd5Sum(), "1b5f7c23b5bf75682a53e7b6d163e185");
     assertEquals(wxMessage.getSendLocationInfo().getLocationX(), "23");
     assertEquals(wxMessage.getSendLocationInfo().getLocationY(), "113");
@@ -95,6 +101,9 @@ public class WxCpXmlMessageTest {
     assertEquals(wxMessage.getSendLocationInfo().getPoiName(), "wo de poi");
   }
 
+  /**
+   * Test send pics info.
+   */
   public void testSendPicsInfo() {
     String xml = "<xml>" +
       "<ToUserName><![CDATA[wx45a0972125658be9]]></ToUserName>" +
@@ -113,17 +122,20 @@ public class WxCpXmlMessageTest {
     WxCpXmlMessage wxMessage = WxCpXmlMessage.fromXml(xml.replace("</PicList><PicList>", ""));
     assertEquals(wxMessage.getToUserName(), "wx45a0972125658be9");
     assertEquals(wxMessage.getFromUserName(), "xiaohe");
-    assertEquals(wxMessage.getCreateTime(), new Long(1502012364L));
+    assertEquals(wxMessage.getCreateTime(), Long.valueOf(1502012364L));
     assertEquals(wxMessage.getMsgType(), WxConsts.XmlMsgType.EVENT);
     assertEquals(wxMessage.getAgentId(), Integer.valueOf(1000004));
     assertEquals(wxMessage.getEvent(), "pic_weixin");
     assertEquals(wxMessage.getEventKey(), "faceSimilarity");
     assertNotNull(wxMessage.getSendPicsInfo());
-    assertEquals(wxMessage.getSendPicsInfo().getCount(), new Long(2L));
+    assertEquals(wxMessage.getSendPicsInfo().getCount(), Long.valueOf(2L));
     assertEquals(wxMessage.getSendPicsInfo().getPicList().get(0).getPicMd5Sum(), "aef52ae501537e552725c5d7f99c1741");
     assertEquals(wxMessage.getSendPicsInfo().getPicList().get(1).getPicMd5Sum(), "c4564632a4fab91378c39bea6aad6f9e");
   }
 
+  /**
+   * Test ext attr.
+   */
   public void testExtAttr() {
 
     String xml = "<xml>" +
@@ -135,16 +147,19 @@ public class WxCpXmlMessageTest {
       "    <ChangeType><![CDATA[update_user]]></ChangeType>" +
       "    <UserID><![CDATA[zhangsan]]></UserID>" +
       "    <ExtAttr>" +
-      "        <Item><Name><![CDATA[爱好]]></Name><Value><![CDATA[111]]></Value><Text><Value><![CDATA[111]]></Value></Text></Item>" +
-      "        <Item><Name><![CDATA[入职时间]]></Name><Value><![CDATA[11111]]></Value><Text><Value><![CDATA[11111]]></Value></Text></Item>" +
-      "        <Item><Name><![CDATA[城市]]></Name><Value><![CDATA[11111]]></Value><Text><Value><![CDATA[11111]]></Value></Text></Item>" +
+      "        <Item><Name><![CDATA[爱好]]></Name><Value><![CDATA[111]]></Value><Text><Value><![CDATA[111]]></Value" +
+      "></Text></Item>" +
+      "        <Item><Name><![CDATA[入职时间]]></Name><Value><![CDATA[11111]]></Value><Text><Value><![CDATA[11111" +
+      "]]></Value></Text></Item>" +
+      "        <Item><Name><![CDATA[城市]]></Name><Value><![CDATA[11111]]></Value><Text><Value><![CDATA[11111]]></Value" +
+      "></Text></Item>" +
       "    </ExtAttr>" +
       "    <Address><![CDATA[11111]]></Address>" +
       "</xml>";
     WxCpXmlMessage wxMessage = WxCpXmlMessage.fromXml(xml);
     assertEquals(wxMessage.getToUserName(), "w56c9fe3d50ad1ea2");
     assertEquals(wxMessage.getFromUserName(), "sys");
-    assertEquals(wxMessage.getCreateTime(), new Long(1557241961));
+    assertEquals(wxMessage.getCreateTime(), Long.valueOf(1557241961));
     assertEquals(wxMessage.getMsgType(), WxConsts.XmlMsgType.EVENT);
     assertEquals(wxMessage.getEvent(), "change_contact");
     assertEquals(wxMessage.getChangeType(), "update_user");
@@ -156,6 +171,9 @@ public class WxCpXmlMessageTest {
 
   }
 
+  /**
+   * Test task card event.
+   */
   public void testTaskCardEvent() {
     String xml = "<xml>" +
       "<ToUserName><![CDATA[toUser]]></ToUserName>" +
@@ -178,6 +196,9 @@ public class WxCpXmlMessageTest {
     assertEquals(wxMessage.getTaskId(), "taskid111");
   }
 
+  /**
+   * Test add external user event.
+   */
   public void testAddExternalUserEvent() {
     String xml = "<xml>" +
       "<ToUserName><![CDATA[toUser]]></ToUserName>" +
@@ -204,6 +225,9 @@ public class WxCpXmlMessageTest {
 
   }
 
+  /**
+   * Test del external user event.
+   */
   public void testDelExternalUserEvent() {
     String xml = "<xml>" +
       "<ToUserName><![CDATA[toUser]]></ToUserName>" +
@@ -226,6 +250,9 @@ public class WxCpXmlMessageTest {
     assertEquals(wxMessage.getExternalUserId(), "woAJ2GCAAAXtWyujaWJHDDGi0mACH71w");
   }
 
+  /**
+   * Test change contact.
+   */
   public void testChangeContact() {
     String xml = "<xml>\n" +
       "    <ToUserName><![CDATA[toUser]]></ToUserName>\n" +
@@ -244,7 +271,9 @@ public class WxCpXmlMessageTest {
       "    <Gender>1</Gender>\n" +
       "    <Email><![CDATA[zhangsan@gzdev.com]]></Email>\n" +
       "    <Status>1</Status>\n" +
-      "    <Avatar><![CDATA[http://wx.qlogo.cn/mmopen/ajNVdqHZLLA3WJ6DSZUfiakYe37PKnQhBIeOQBO4czqrnZDS79FH5Wm5m4X69TBicnHFlhiafvDwklOpZeXYQQ2icg/0]]></Avatar>\n" +
+      "    <Avatar><![CDATA[http://wx.qlogo" +
+      ".cn/mmopen/ajNVdqHZLLA3WJ6DSZUfiakYe37PKnQhBIeOQBO4czqrnZDS79FH5Wm5m4X69TBicnHFlhiafvDwklOpZeXYQQ2icg/0" +
+      "]]></Avatar>\n" +
       "    <Alias><![CDATA[zhangsan]]></Alias>\n" +
       "    <Telephone><![CDATA[020-3456788]]></Telephone>\n" +
       "    <Address><![CDATA[广州市]]></Address>\n" +
@@ -272,5 +301,145 @@ public class WxCpXmlMessageTest {
     assertThat(wxCpXmlMessage.getDepartments()).isNotEmpty();
 
     System.out.println(XStreamTransformer.toXml(WxCpXmlMessage.class, wxCpXmlMessage));
+  }
+
+  /**
+   * Test template card event.
+   */
+  public void testTemplateCardEvent() {
+    String xml = "<xml>\n" +
+      "<ToUserName><![CDATA[toUser]]></ToUserName>\n" +
+      "<FromUserName><![CDATA[FromUser]]></FromUserName>\n" +
+      "<CreateTime>123456789</CreateTime>\n" +
+      "<MsgType><![CDATA[event]]></MsgType>\n" +
+      "<Event><![CDATA[template_card_event]]></Event>\n" +
+      "<EventKey><![CDATA[key111]]></EventKey>\n" +
+      "<TaskId><![CDATA[taskid111]]></TaskId>\n" +
+      "<CardType><![CDATA[text_notice]]></CardType>\n" +
+      "<ResponseCode><![CDATA[ResponseCode]]></ResponseCode>\n" +
+      "<AgentID>1</AgentID>\n" +
+      "<SelectedItems>\n" +
+      "    <SelectedItem>\n" +
+      "        <QuestionKey><![CDATA[QuestionKey1]]></QuestionKey>\n" +
+      "        <OptionIds>\n" +
+      "            <OptionId><![CDATA[OptionId1]]></OptionId>\n" +
+      "            <OptionId><![CDATA[OptionId2]]></OptionId>\n" +
+      "        </OptionIds>\n" +
+      "    </SelectedItem>\n" +
+      "    <SelectedItem>\n" +
+      "        <QuestionKey><![CDATA[QuestionKey2]]></QuestionKey>\n" +
+      "        <OptionIds>\n" +
+      "            <OptionId><![CDATA[OptionId3]]></OptionId>\n" +
+      "            <OptionId><![CDATA[OptionId4]]></OptionId>\n" +
+      "        </OptionIds>\n" +
+      "    </SelectedItem>\n" +
+      "</SelectedItems>\n" +
+      "</xml>";
+
+    WxCpXmlMessage wxCpXmlMessage = WxCpXmlMessage.fromXml(xml);
+    assertThat(wxCpXmlMessage).isNotNull();
+    assertThat(wxCpXmlMessage.getSelectedItems()).isNotEmpty();
+    assertThat(wxCpXmlMessage.getSelectedItems().get(0).getQuestionKey()).isNotEmpty();
+    assertThat(wxCpXmlMessage.getSelectedItems().get(0).getOptionIds().get(0)).isNotEmpty();
+  }
+
+  /**
+   * Test open approval change.
+   */
+  public void testOpenApprovalChange() {
+    String xml = "<xml>\n" +
+      " <ToUserName><![CDATA[wwddddccc7775555aaa]]></ToUserName>\n" +
+      "  <FromUserName><![CDATA[sys]]></FromUserName>\n" +
+      "  <CreateTime>1527838022</CreateTime>\n" +
+      "  <MsgType><![CDATA[event]]></MsgType>\n" +
+      "  <Event><![CDATA[open_approval_change]]></Event>\n" +
+      "  <AgentID>1</AgentID>\n" +
+      "  <ApprovalInfo>\n" +
+      "    <ThirdNo><![CDATA[201806010001]]></ThirdNo>\n" +
+      "    <OpenSpName><![CDATA[付款]]></OpenSpName>\n" +
+      "    <OpenTemplateId><![CDATA[1234567890]]></OpenTemplateId>\n" +
+      "    <OpenSpStatus>1</OpenSpStatus>\n" +
+      "    <ApplyTime>1527837645</ApplyTime>\n" +
+      "    <ApplyUserName><![CDATA[xiaoming]]></ApplyUserName>\n" +
+      "    <ApplyUserId><![CDATA[1]]></ApplyUserId>\n" +
+      "    <ApplyUserParty><![CDATA[产品部]]></ApplyUserParty>\n" +
+      "    <ApplyUserImage><![CDATA[http://www.qq.com/xxx.png]]></ApplyUserImage>\n" +
+      "    <ApprovalNodes>\n" +
+      "      <ApprovalNode>\n" +
+      "        <NodeStatus>1</NodeStatus>\n" +
+      "        <NodeAttr>1</NodeAttr>\n" +
+      "        <NodeType>1</NodeType>\n" +
+      "        <Items>\n" +
+      "          <Item>\n" +
+      "            <ItemName><![CDATA[xiaohong]]></ItemName>\n" +
+      "            <ItemUserId><![CDATA[2]]></ItemUserId>\n" +
+      "            <ItemImage><![CDATA[http://www.qq.com/xxx.png]]></ItemImage>\n" +
+      "            <ItemStatus>1</ItemStatus>\n" +
+      "            <ItemSpeech><![CDATA[]]></ItemSpeech>\n" +
+      "            <ItemOpTime>0</ItemOpTime>\n" +
+      "          </Item>\n" +
+      "        </Items>\n" +
+      "      </ApprovalNode>\n" +
+      "      <ApprovalNode>\n" +
+      "        <NodeStatus>1</NodeStatus>\n" +
+      "        <NodeAttr>1</NodeAttr>\n" +
+      "        <NodeType>1</NodeType>\n" +
+      "        <Items>\n" +
+      "          <Item>\n" +
+      "            <ItemName><![CDATA[xiaohong]]></ItemName>\n" +
+      "            <ItemUserId><![CDATA[2]]></ItemUserId>\n" +
+      "            <ItemImage><![CDATA[http://www.qq.com/xxx.png]]></ItemImage>\n" +
+      "            <ItemStatus>1</ItemStatus>\n" +
+      "            <ItemSpeech><![CDATA[]]></ItemSpeech>\n" +
+      "            <ItemOpTime>0</ItemOpTime>\n" +
+      "          </Item>\n" +
+      "          <Item>\n" +
+      "            <ItemName><![CDATA[xiaohong]]></ItemName>\n" +
+      "            <ItemUserId><![CDATA[2]]></ItemUserId>\n" +
+      "            <ItemImage><![CDATA[http://www.qq.com/xxx.png]]></ItemImage>\n" +
+      "            <ItemStatus>1</ItemStatus>\n" +
+      "            <ItemSpeech><![CDATA[]]></ItemSpeech>\n" +
+      "            <ItemOpTime>0</ItemOpTime>\n" +
+      "          </Item>\n" +
+      "        </Items>\n" +
+      "      </ApprovalNode>\n" +
+      "    </ApprovalNodes>\n" +
+      "    <NotifyNodes>\n" +
+      "      <NotifyNode>\n" +
+      "        <ItemName><![CDATA[xiaogang]]></ItemName>\n" +
+      "        <ItemUserId><![CDATA[3]]></ItemUserId>\n" +
+      "        <ItemImage><![CDATA[http://www.qq.com/xxx.png]]></ItemImage>\n" +
+      "      </NotifyNode>\n" +
+      "    </NotifyNodes>\n" +
+      "    <approverstep>0</approverstep>\n" +
+      "  </ApprovalInfo>\n" +
+      "</xml>\n";
+
+    WxCpXmlMessage wxCpXmlMessage = WxCpXmlMessage.fromXml(xml);
+    assertThat(wxCpXmlMessage).isNotNull();
+    assertThat(wxCpXmlMessage.getApprovalInfo().getApprovalNodes()).isNotEmpty();
+    assertThat(wxCpXmlMessage.getApprovalInfo().getApprovalNodes().get(0).getItems()).isNotEmpty();
+    assertThat(wxCpXmlMessage.getApprovalInfo().getApprovalNodes().get(0).getItems().get(0).getItemName()).isNotEmpty();
+    assertThat(wxCpXmlMessage.getApprovalInfo().getNotifyNodes().get(0).getItemName()).isNotEmpty();
+  }
+
+  /**
+   * Test open approval change.
+   */
+  public void testUploadMediaJobFinishEvent() {
+    String xml = "<xml>\n" +
+      "\t<ToUserName><![CDATA[wx28dbb14e3720FAKE]]></ToUserName>\n" +
+      "\t<FromUserName><![CDATA[sys]]></FromUserName>\n" +
+      "\t<CreateTime>1425284517</CreateTime>\n" +
+      "\t<MsgType><![CDATA[event]]></MsgType>\n" +
+      "\t<Event><![CDATA[upload_media_job_finish]]></Event>\n" +
+      "\t<JobId><![CDATA[jobid_S0MrnndvRG5fadSlLwiBqiDDbM143UqTmKP3152FZk4]]></JobId>\n" +
+      "</xml>";
+
+    WxCpXmlMessage wxCpXmlMessage = WxCpXmlMessage.fromXml(xml);
+    assertThat(wxCpXmlMessage).isNotNull();
+    assertThat(wxCpXmlMessage.getJobId()).isNotEmpty();
+    assertThat(wxCpXmlMessage.getJobId()).isEqualTo("jobid_S0MrnndvRG5fadSlLwiBqiDDbM143UqTmKP3152FZk4");
+    assertThat(wxCpXmlMessage.getEvent()).isEqualTo(UPLOAD_MEDIA_JOB_FINISH);
   }
 }

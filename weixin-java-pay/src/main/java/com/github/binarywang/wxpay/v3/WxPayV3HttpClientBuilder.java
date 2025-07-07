@@ -2,13 +2,9 @@ package com.github.binarywang.wxpay.v3;
 
 
 import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.util.List;
 
-import com.github.binarywang.wxpay.v3.auth.CertificatesVerifier;
 import com.github.binarywang.wxpay.v3.auth.PrivateKeySigner;
 import com.github.binarywang.wxpay.v3.auth.WxPayCredentials;
-import com.github.binarywang.wxpay.v3.auth.WxPayValidator;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.execchain.ClientExecChain;
@@ -43,11 +39,6 @@ public class WxPayV3HttpClientBuilder extends HttpClientBuilder {
 
   public WxPayV3HttpClientBuilder withCredentials(Credentials credentials) {
     this.credentials = credentials;
-    return this;
-  }
-
-  public WxPayV3HttpClientBuilder withWechatpay(List<X509Certificate> certificates) {
-    this.validator = new WxPayValidator(new CertificatesVerifier(certificates));
     return this;
   }
 

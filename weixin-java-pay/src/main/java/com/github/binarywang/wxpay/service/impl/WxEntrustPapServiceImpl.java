@@ -10,12 +10,13 @@ import com.github.binarywang.wxpay.util.SignUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.util.json.WxGsonBuilder;
+import org.apache.commons.lang3.StringUtils;
 
 import java.net.URLEncoder;
 
 /**
  * @author chenliang
- * @date 2021-08-02 4:53 下午
+ * created on  2021-08-02 4:53 下午
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -48,6 +49,8 @@ public class WxEntrustPapServiceImpl implements WxEntrustPapService {
   @Override
   public WxH5EntrustResult h5Sign(WxH5EntrustRequest wxH5EntrustRequest) throws WxPayException {
     wxH5EntrustRequest.checkAndSign(payService.getConfig());
+    // 微信最新接口signType不能参与签名，否则报错：签约参数签名校验错误
+    wxH5EntrustRequest.setSignType(null);
 
     String sign = SignUtils.createSign(wxH5EntrustRequest, WxPayConstants.SignType.HMAC_SHA256, payService.getConfig().getMchKey(), null);
     /**
@@ -63,8 +66,13 @@ public class WxEntrustPapServiceImpl implements WxEntrustPapService {
     strBuilder.append("&contract_code=").append(wxH5EntrustRequest.getContractCode());
     strBuilder.append("&contract_display_account=").append(URLEncoder.encode(wxH5EntrustRequest.getContractDisplayAccount()));
     strBuilder.append("&mch_id=").append(wxH5EntrustRequest.getMchId()).append("&notify_url=").append(URLEncoder.encode(wxH5EntrustRequest.getNotifyUrl()));
-    strBuilder.append("&plan_id=").append(wxH5EntrustRequest.getPlanId()).append("&outerid=").append(URLEncoder.encode(wxH5EntrustRequest.getOuterId()));
-    strBuilder.append("&return_appid=").append(wxH5EntrustRequest.getReturnAppid());
+    strBuilder.append("&plan_id=").append(wxH5EntrustRequest.getPlanId());
+    if (StringUtils.isNotEmpty(wxH5EntrustRequest.getOuterId())) {
+      strBuilder.append("&outerid=").append(URLEncoder.encode(wxH5EntrustRequest.getOuterId()));
+    }
+    if (StringUtils.isNotEmpty(wxH5EntrustRequest.getReturnAppid())) {
+      strBuilder.append("&return_appid=").append(wxH5EntrustRequest.getReturnAppid());
+    }
     strBuilder.append("&clientip=").append(wxH5EntrustRequest.getClientIp());
     strBuilder.append("&request_serial=").append(wxH5EntrustRequest.getRequestSerial()).append("&timestamp=").append(wxH5EntrustRequest.getTimestamp());
     strBuilder.append("&version=").append(wxH5EntrustRequest.getVersion()).append("&sign=").append(sign);
@@ -95,6 +103,16 @@ public class WxEntrustPapServiceImpl implements WxEntrustPapService {
     String url = payService.getPayBaseUrl() + "/pay/pappayapply";
     String responseContent = payService.post(url, wxWithholdRequest.toXML(), false);
     WxWithholdResult result = BaseWxPayResult.fromXML(responseContent, WxWithholdResult.class);
+    result.checkResult(payService, wxWithholdRequest.getSignType(), true);
+    return result;
+  }
+
+  @Override
+  public WxPayCommonResult withholdPartner(WxWithholdRequest wxWithholdRequest) throws WxPayException {
+    wxWithholdRequest.checkAndSign(payService.getConfig());
+    String url = payService.getPayBaseUrl() + "/pay/partner/pappayapply";
+    String responseContent = payService.post(url, wxWithholdRequest.toXML(), false);
+    WxPayCommonResult result = BaseWxPayResult.fromXML(responseContent, WxPayCommonResult.class);
     result.checkResult(payService, wxWithholdRequest.getSignType(), true);
     return result;
   }

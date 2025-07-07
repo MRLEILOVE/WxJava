@@ -8,6 +8,7 @@ import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.open.bean.WxOpenCreateResult;
 import me.chanjar.weixin.open.bean.WxOpenGetResult;
 import me.chanjar.weixin.open.bean.WxOpenMaCodeTemplate;
+import me.chanjar.weixin.open.bean.ma.WxOpenMaApplyOrderPathInfo;
 import me.chanjar.weixin.open.bean.message.WxOpenXmlMessage;
 import me.chanjar.weixin.open.bean.minishop.*;
 import me.chanjar.weixin.open.bean.minishop.coupon.WxMinishopCoupon;
@@ -15,7 +16,10 @@ import me.chanjar.weixin.open.bean.minishop.coupon.WxMinishopCouponStock;
 import me.chanjar.weixin.open.bean.minishop.goods.*;
 import me.chanjar.weixin.open.bean.minishop.limitdiscount.LimitDiscountGoods;
 import me.chanjar.weixin.open.bean.result.*;
-import org.jetbrains.annotations.Nullable;
+import me.chanjar.weixin.open.bean.tcb.ShareCloudBaseEnvRequest;
+import me.chanjar.weixin.open.bean.tcb.ShareCloudBaseEnvResponse;
+import me.chanjar.weixin.open.bean.tcbComponent.GetShareCloudBaseEnvResponse;
+import me.chanjar.weixin.open.bean.tcbComponent.GetTcbEnvListResponse;
 
 import java.io.File;
 import java.util.List;
@@ -51,13 +55,13 @@ public interface WxOpenComponentService {
    */
   String API_GET_AUTHORIZER_INFO_URL = "https://api.weixin.qq.com/cgi-bin/component/api_get_authorizer_info";
   /**
-   * The constant API_GET_AUTHORIZER_OPTION_URL.
+   * The constant GET_AUTHORIZER_OPTION_URL.
    */
-  String API_GET_AUTHORIZER_OPTION_URL = "https://api.weixin.qq.com/cgi-bin/component/api_get_authorizer_option";
+  String GET_AUTHORIZER_OPTION_URL = "https://api.weixin.qq.com/cgi-bin/component/get_authorizer_option";
   /**
-   * The constant API_SET_AUTHORIZER_OPTION_URL.
+   * The constant SET_AUTHORIZER_OPTION_URL.
    */
-  String API_SET_AUTHORIZER_OPTION_URL = "https://api.weixin.qq.com/cgi-bin/component/api_set_authorizer_option";
+  String SET_AUTHORIZER_OPTION_URL = "https://api.weixin.qq.com/cgi-bin/component/set_authorizer_option";
   /**
    * The constant API_GET_AUTHORIZER_LIST.
    */
@@ -71,7 +75,7 @@ public interface WxOpenComponentService {
   /**
    * 手机端打开授权链接.
    */
-  String COMPONENT_MOBILE_LOGIN_PAGE_URL = "https://mp.weixin.qq.com/safe/bindcomponent?action=bindcomponent&no_scan=1&auth_type=3&component_appid=%s&pre_auth_code=%s&redirect_uri=%s&auth_type=xxx&biz_appid=xxx#wechat_redirect";
+  String COMPONENT_MOBILE_LOGIN_PAGE_URL = "https://open.weixin.qq.com/wxaopen/safe/bindcomponent?action=bindcomponent&no_scan=1&component_appid=%s&pre_auth_code=%s&redirect_uri=%s&auth_type=xxx&biz_appid=xxx#wechat_redirect";
   /**
    * The constant CONNECT_OAUTH2_AUTHORIZE_URL.
    */
@@ -112,6 +116,11 @@ public interface WxOpenComponentService {
   String GET_OPEN_URL = "https://api.weixin.qq.com/cgi-bin/open/get";
 
   /**
+   * 查询公众号/小程序是否绑定 open 帐号
+   */
+  String HAVE_OPEN_URL = "https://api.weixin.qq.com/cgi-bin/open/have";
+
+  /**
    * 快速创建小程序接口.
    */
   String FAST_REGISTER_WEAPP_URL = "https://api.weixin.qq.com/cgi-bin/component/fastregisterweapp?action=create";
@@ -130,9 +139,9 @@ public interface WxOpenComponentService {
    */
   String FAST_REGISTER_PERSONAL_WEAPP_SEARCH_URL = "https://api.weixin.qq.com/wxa/component/fastregisterpersonalweapp?action=query";
 
-    /**
-     * 快速创建试用小程序接口.
-     */
+  /**
+   * 快速创建试用小程序接口.
+   */
   String FAST_REGISTER_BETA_WEAPP_URL = "https://api.weixin.qq.com/wxa/component/fastregisterbetaweapp";
 
   /**
@@ -184,6 +193,15 @@ public interface WxOpenComponentService {
 
   String MINISHOP_GET_DELIVERY_COMPANY_URL = "https://api.weixin.qq.com/product/delivery/get_company_list";
 
+  String BATCH_GET_ENVID_URL = "https://api.weixin.qq.com/componenttcb/batchgetenvid";
+
+  String DESCRIBE_ENVS_URL = "https://api.weixin.qq.com/componenttcb/describeenvs";
+
+  String MODIFY_ENV_URL = "https://api.weixin.qq.com/tcb/modifyenv";
+
+  String BATCH_SHARE_ENV = "https://api.weixin.qq.com/componenttcb/batchshareenv";
+
+  String COMPONENT_CLEAR_QUOTA_URL = "https://api.weixin.qq.com/cgi-bin/component/clear_quota/v2";
 
   /**
    * Gets wx mp service by appid.
@@ -273,6 +291,8 @@ public interface WxOpenComponentService {
    * @throws WxErrorException the wx error exception
    */
   String post(String uri, String postData, String accessTokenKey) throws WxErrorException;
+
+  String post(String uri, String postData, String accessTokenKey, String accessToken) throws WxErrorException;
 
   /**
    * Get string.
@@ -484,7 +504,7 @@ public interface WxOpenComponentService {
    * @return 小程序代码模版列表 （templateId）
    * @throws WxErrorException 获取失败时返回，具体错误码请看此接口的注释文档
    */
-  List<WxOpenMaCodeTemplate> getTemplateList(@Nullable Integer templateType) throws WxErrorException;
+  List<WxOpenMaCodeTemplate> getTemplateList(Integer templateType) throws WxErrorException;
 
   /**
    * 请参考并使用 {@link #addToTemplate(long, int)}.
@@ -565,6 +585,16 @@ public interface WxOpenComponentService {
   WxOpenGetResult getOpenAccount(String appId, String appIdType) throws WxErrorException;
 
   /**
+   * https://developers.weixin.qq.com/doc/oplatform/Third-party_Platforms/2.0/api/Mini_Program_Basic_Info/getbindopeninfo.html
+   * 查询公众号/小程序是否绑定 open 帐号
+   *
+   * @return 是否绑定 open 帐号，true表示绑定；false表示未绑定任何 open 帐号
+   * @throws WxErrorException the wx error exception
+   */
+  WxOpenHaveResult haveOpen() throws WxErrorException;
+
+
+  /**
    * https://open.weixin.qq.com/cgi-bin/showdocument?action=dir_list&t=resource/res_list&verify=1&id=21538208049W8uwq&token=&lang=zh_CN
    * 第三方平台快速创建小程序.
    * 注意：创建任务逻辑串行，单次任务结束后才可以使用相同信息下发第二次任务，请注意规避任务阻塞
@@ -600,9 +630,9 @@ public interface WxOpenComponentService {
    * https://developers.weixin.qq.com/doc/oplatform/Third-party_Platforms/2.0/api/Register_Mini_Programs/fastregisterpersonalweapp.html
    * 快速创建个人小程序
    *
-   * @param idname              个人用户名字
-   * @param wxuser              个人用户微信号
-   * @param componentPhone      第三方联系电话
+   * @param idname         个人用户名字
+   * @param wxuser         个人用户微信号
+   * @param componentPhone 第三方联系电话
    * @return the wx open result
    * @throws WxErrorException
    */
@@ -622,7 +652,7 @@ public interface WxOpenComponentService {
    * https://developers.weixin.qq.com/doc/oplatform/Third-party_Platforms/2.0/api/beta_Mini_Programs/fastregister.html
    * 注册试用小程序
    *
-   * @param name 小程序名称
+   * @param name   小程序名称
    * @param openid 微信用户的openid（不是微信号）
    * @return the wx open result
    * @throws WxErrorException
@@ -1020,4 +1050,71 @@ public interface WxOpenComponentService {
    * @return
    */
   WxOpenResult updateLimitDiscountStatus(String appId, Long taskId, Integer status) throws WxErrorException;
+
+  /**
+   * 查询环境共享信息
+   * https://developers.weixin.qq.com/doc/oplatform/openApi/OpenApiDoc/cloudbase-batch/env-mgnt/getShareCloudbaseEnv.html
+   *
+   * @param appids 要查询的appid
+   * @return
+   */
+  GetShareCloudBaseEnvResponse getShareCloudBaseEnv(List<String> appids) throws WxErrorException;
+
+
+  /**
+   * 获取环境信息
+   * https://developers.weixin.qq.com/doc/oplatform/openApi/OpenApiDoc/cloudbase-batch/env-mgnt/getTcbEnvList.html
+   *
+   * @return
+   * @throws WxErrorException
+   */
+  GetTcbEnvListResponse getTcbEnvList() throws WxErrorException;
+
+  /**
+   * 转换云环境
+   * https://developers.weixin.qq.com/doc/oplatform/openApi/OpenApiDoc/cloudbase-batch/env-mgnt/changeTcbEnv.html
+   *
+   * @param env 环境id
+   * @return
+   * @throws WxErrorException
+   */
+  WxOpenResult changeTcbEnv(String env) throws WxErrorException;
+
+
+  /**
+   * 环境共享
+   * https://developers.weixin.qq.com/doc/oplatform/openApi/OpenApiDoc/cloudbase-batch/env-mgnt/shareCloudbaseEnv.html
+   *
+   * @param request
+   * @return
+   * @throws WxErrorException
+   */
+  ShareCloudBaseEnvResponse shareCloudBaseEnv(ShareCloudBaseEnvRequest request) throws WxErrorException;
+
+  /**
+   * 使用 AppSecret 重置第三方平台 API 调用次数
+   * https://developers.weixin.qq.com/doc/oplatform/openApi/OpenApiDoc/openapi/clearComponentQuotaByAppSecret.html
+   *
+   * @param appid 授权用户appid
+   * @return
+   * @throws WxErrorException
+   */
+  WxOpenResult clearQuotaV2(String appid) throws WxErrorException;
+
+  //////////////////////////////////////////////////////////////
+  /**
+   * 申请设置订单页path信息
+   */
+  String OPEN_APPLY_SET_ORDER_PATH_INFO = "https://api.weixin.qq.com/wxa/security/applysetorderpathinfo";
+
+  /**
+   * 申请设置订单页path信息
+   * 注意：一次提交不超过100个appid
+   *
+   * @param info 订单页path信息
+   * @return .
+   * @throws WxErrorException .
+   */
+  WxOpenResult applySetOrderPathInfo(WxOpenMaApplyOrderPathInfo info) throws WxErrorException;
+
 }

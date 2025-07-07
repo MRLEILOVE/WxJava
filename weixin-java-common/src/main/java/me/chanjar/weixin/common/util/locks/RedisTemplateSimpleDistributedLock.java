@@ -1,8 +1,6 @@
 package me.chanjar.weixin.common.util.locks;
 
 import lombok.Getter;
-import lombok.NonNull;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -11,7 +9,7 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.data.redis.core.types.Expiration;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -34,11 +32,11 @@ public class RedisTemplateSimpleDistributedLock implements Lock {
 
   private final ThreadLocal<String> valueThreadLocal = new ThreadLocal<>();
 
-  public RedisTemplateSimpleDistributedLock(@NonNull StringRedisTemplate redisTemplate, int leaseMilliseconds) {
+  public RedisTemplateSimpleDistributedLock( StringRedisTemplate redisTemplate, int leaseMilliseconds) {
     this(redisTemplate, "lock:" + UUID.randomUUID().toString(), leaseMilliseconds);
   }
 
-  public RedisTemplateSimpleDistributedLock(@NonNull StringRedisTemplate redisTemplate, @NonNull String key, int leaseMilliseconds) {
+  public RedisTemplateSimpleDistributedLock( StringRedisTemplate redisTemplate,  String key, int leaseMilliseconds) {
     if (leaseMilliseconds <= 0) {
       throw new IllegalArgumentException("Parameter 'leaseMilliseconds' must grate then 0: " + leaseMilliseconds);
     }
@@ -68,7 +66,7 @@ public class RedisTemplateSimpleDistributedLock implements Lock {
   @Override
   public boolean tryLock() {
     String value = valueThreadLocal.get();
-    if (value == null || value.length() == 0) {
+    if (value == null || value.isEmpty()) {
       value = UUID.randomUUID().toString();
       valueThreadLocal.set(value);
     }
@@ -84,7 +82,7 @@ public class RedisTemplateSimpleDistributedLock implements Lock {
   }
 
   @Override
-  public boolean tryLock(long time, @NotNull TimeUnit unit) throws InterruptedException {
+  public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
     long waitMs = unit.toMillis(time);
     boolean locked = tryLock();
     while (!locked && waitMs > 0) {
@@ -100,8 +98,8 @@ public class RedisTemplateSimpleDistributedLock implements Lock {
   public void unlock() {
     if (valueThreadLocal.get() != null) {
       // 提示: 必须指定returnType, 类型: 此处必须为Long, 不能是Integer
-      RedisScript<Long> script = new DefaultRedisScript("if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end", Long.class);
-      redisTemplate.execute(script, Arrays.asList(key), valueThreadLocal.get());
+      RedisScript<Long> script = new DefaultRedisScript<>("if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end", Long.class);
+      redisTemplate.execute(script, Collections.singletonList(key), valueThreadLocal.get());
       valueThreadLocal.remove();
     }
   }

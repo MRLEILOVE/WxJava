@@ -61,6 +61,7 @@ public abstract class BaseWxChannelServiceImpl<H, P> implements WxChannelService
   private WxChannelCompassFinderService compassFinderService = null;
   private WxChannelLiveDashboardService liveDashboardService = null;
   private WxChannelQicService qicService = null;
+  private WxTalentService talentService = null;
 
   protected WxChannelConfig config;
   private int retrySleepMillis = 1000;
@@ -480,6 +481,14 @@ public abstract class BaseWxChannelServiceImpl<H, P> implements WxChannelService
       qicService = new WxChannelQicServiceImpl(this);
     }
     return qicService;
+  }
+
+  @Override
+  public synchronized WxTalentService getTalentService() {
+    if (talentService == null) {
+      talentService = new WxTalentServiceImpl(this);
+    }
+    return talentService;
   }
 
 }

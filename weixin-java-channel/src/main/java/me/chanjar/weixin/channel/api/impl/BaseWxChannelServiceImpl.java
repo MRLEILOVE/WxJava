@@ -62,6 +62,7 @@ public abstract class BaseWxChannelServiceImpl<H, P> implements WxChannelService
   private WxChannelLiveDashboardService liveDashboardService = null;
   private WxChannelQicService qicService = null;
   private WxTalentService talentService = null;
+  private WxChannelFavoriteService favoriteService = null;
 
   protected WxChannelConfig config;
   private int retrySleepMillis = 1000;
@@ -489,6 +490,14 @@ public abstract class BaseWxChannelServiceImpl<H, P> implements WxChannelService
       talentService = new WxTalentServiceImpl(this);
     }
     return talentService;
+  }
+
+  @Override
+  public synchronized WxChannelFavoriteService getFavoriteService() {
+    if (favoriteService == null) {
+      favoriteService = new WxChannelFavoriteServiceImpl(this);
+    }
+    return favoriteService;
   }
 
 }

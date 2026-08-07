@@ -15,7 +15,7 @@ public abstract class AbstractWxCpConfigStorageConfiguration {
   protected WxCpDefaultConfigImpl config(WxCpDefaultConfigImpl config, WxCpProperties properties) {
     String corpId = properties.getCorpId();
     String corpSecret = properties.getCorpSecret();
-    Integer agentId = properties.getAgentId();
+    Long agentId = properties.getAgentId();
     String token = properties.getToken();
     String aesKey = properties.getAesKey();
     // 企业微信，私钥，会话存档路径
@@ -36,6 +36,9 @@ public abstract class AbstractWxCpConfigStorageConfiguration {
     }
     if (StringUtils.isNotBlank(msgAuditLibPath)) {
       config.setMsgAuditLibPath(msgAuditLibPath);
+    }
+    if (StringUtils.isNotBlank(properties.getBaseApiUrl())) {
+      config.setBaseApiUrl(properties.getBaseApiUrl());
     }
 
     WxCpProperties.ConfigStorage storage = properties.getConfigStorage();

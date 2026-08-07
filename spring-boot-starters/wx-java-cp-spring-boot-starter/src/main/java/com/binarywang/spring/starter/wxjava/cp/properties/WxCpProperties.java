@@ -34,7 +34,7 @@ public class WxCpProperties {
   /**
    * 微信企业号应用 ID
    */
-  private Integer agentId;
+  private Long agentId;
   /**
    * 微信企业号应用 EncodingAESKey
    */
@@ -47,6 +47,12 @@ public class WxCpProperties {
    * 微信企业号应用 会话存档类库路径
    */
   private String msgAuditLibPath;
+
+  /**
+   * 自定义企业微信服务器baseUrl，用于替换默认的 https://qyapi.weixin.qq.com
+   * 例如：http://proxy.company.com:8080
+   */
+  private String baseApiUrl;
 
   /**
    * 配置存储策略，默认内存

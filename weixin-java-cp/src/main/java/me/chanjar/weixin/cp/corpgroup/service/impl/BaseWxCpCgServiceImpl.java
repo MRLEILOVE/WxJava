@@ -43,17 +43,17 @@ public abstract class BaseWxCpCgServiceImpl<H, P> implements WxCpCgService, Requ
   private final WxCpLinkedCorpService linkedCorpService = new WxCpLinkedCorpServiceImpl(this);
 
   @Override
-  public void updateCorpAccessToken(String corpId, Integer agentId, String corpAccessToken, int expiresInSeconds) {
+  public void updateCorpAccessToken(String corpId, Long agentId, String corpAccessToken, int expiresInSeconds) {
 
   }
 
   @Override
-  public String getCorpAccessToken(String corpId, Integer agentId, Integer businessType) throws WxErrorException {
+  public String getCorpAccessToken(String corpId, Long agentId, Integer businessType) throws WxErrorException {
     return getCorpAccessToken(corpId, agentId, businessType, false);
   }
 
   @Override
-  public String getCorpAccessToken(String corpId, Integer agentId, Integer businessType, boolean forceRefresh) throws WxErrorException {
+  public String getCorpAccessToken(String corpId, Long agentId, Integer businessType, boolean forceRefresh) throws WxErrorException {
     if (!this.configStorage.isCorpAccessTokenExpired(corpId, agentId) && !forceRefresh) {
       return this.configStorage.getCorpAccessToken(corpId, agentId);
     }
@@ -71,23 +71,23 @@ public abstract class BaseWxCpCgServiceImpl<H, P> implements WxCpCgService, Requ
   }
 
   @Override
-  public WxAccessToken getCorpAccessTokenEntity(String corpId, Integer agentId, Integer businessType) throws WxErrorException {
+  public WxAccessToken getCorpAccessTokenEntity(String corpId, Long agentId, Integer businessType) throws WxErrorException {
     return this.getCorpAccessTokenEntity(corpId, agentId, businessType, false);
   }
 
 
   @Override
-  public WxAccessToken getCorpAccessTokenEntity(String corpId, Integer agentId, Integer businessType, boolean forceRefresh) throws WxErrorException {
+  public WxAccessToken getCorpAccessTokenEntity(String corpId, Long agentId, Integer businessType, boolean forceRefresh) throws WxErrorException {
     return this.configStorage.getCorpAccessTokenEntity(corpId, agentId);
   }
 
   @Override
-  public boolean isCorpAccessTokenExpired(String corpId, Integer agentId) {
+  public boolean isCorpAccessTokenExpired(String corpId, Long agentId) {
     return this.configStorage.isCorpAccessTokenExpired(corpId, agentId);
   }
 
   @Override
-  public void expireCorpAccessToken(String corpId, Integer agentId) {
+  public void expireCorpAccessToken(String corpId, Long agentId) {
     this.configStorage.expireCorpAccessToken(corpId, agentId);
   }
 
@@ -112,6 +112,7 @@ public abstract class BaseWxCpCgServiceImpl<H, P> implements WxCpCgService, Requ
    * @param url                    the url
    * @param postData               the post data
    * @param withoutCorpAccessToken the without Corp access token
+   * @param req                    获取token请求参数
    * @return the string
    * @throws WxErrorException the wx error exception
    */
@@ -136,6 +137,7 @@ public abstract class BaseWxCpCgServiceImpl<H, P> implements WxCpCgService, Requ
    * @param uri                    the uri
    * @param data                   the data
    * @param withoutCorpAccessToken the without Corp access token
+   * @param req                    获取token请求参数
    * @return the t
    * @throws WxErrorException the wx error exception
    */
@@ -181,6 +183,7 @@ public abstract class BaseWxCpCgServiceImpl<H, P> implements WxCpCgService, Requ
    * @param executor the executor
    * @param uri      the uri
    * @param data     the data
+   * @param req      获取token请求参数
    * @return the t
    * @throws WxErrorException the wx error exception
    */
@@ -197,6 +200,7 @@ public abstract class BaseWxCpCgServiceImpl<H, P> implements WxCpCgService, Requ
    * @param uri                    the uri
    * @param data                   the data
    * @param withoutCorpAccessToken the without Corp access token
+   * @param req                    获取token请求参数
    * @return the t
    * @throws WxErrorException the wx error exception
    */

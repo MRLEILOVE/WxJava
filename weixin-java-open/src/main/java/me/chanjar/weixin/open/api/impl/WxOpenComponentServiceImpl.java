@@ -644,6 +644,26 @@ public class WxOpenComponentServiceImpl implements WxOpenComponentService {
   }
 
   @Override
+  public WxOpenRegisterPersonalWeappResult fastRegisterEnterpriseWeapp(String name, String code, String componentPhone) throws WxErrorException {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("name", name);
+    jsonObject.addProperty("code", code);
+    jsonObject.addProperty("component_phone", componentPhone);
+    jsonObject.addProperty("new_version", true);
+    String response = post(FAST_REGISTER_ENTERPRISE_WEAPP_URL, jsonObject.toString(), "access_token");
+    return WxOpenGsonBuilder.create().fromJson(response, WxOpenRegisterPersonalWeappResult.class);
+  }
+
+  @Override
+  public WxOpenRegisterPersonalWeappResult fastRegisterEnterpriseWeappQuery(String taskid) throws WxErrorException {
+    JsonObject jsonObject = new JsonObject();
+    jsonObject.addProperty("taskid", taskid);
+    jsonObject.addProperty("new_version", true);
+    String response = post(FAST_REGISTER_ENTERPRISE_WEAPP_QUERY_URL, jsonObject.toString(), "access_token");
+    return WxOpenGsonBuilder.create().fromJson(response, WxOpenRegisterPersonalWeappResult.class);
+  }
+
+  @Override
   public WxOpenResult fastRegisterWeappSearch(String name, String legalPersonaWechat, String legalPersonaName) throws WxErrorException {
     JsonObject jsonObject = new JsonObject();
     jsonObject.addProperty("name", name);
@@ -1306,5 +1326,56 @@ public class WxOpenComponentServiceImpl implements WxOpenComponentService {
     Gson gson = new Gson();
     String response = post(OPEN_APPLY_SET_ORDER_PATH_INFO, gson.toJson(info));
     return WxOpenGsonBuilder.create().fromJson(response, WxOpenResult.class);
+  }
+
+  @Override
+  public WxOpenMaDomainResult modifyWxaServerDomain(String action, List<String> requestDomains, List<String> wsRequestDomains,
+                                                    List<String> uploadDomains, List<String> downloadDomains,
+                                                    List<String> udpDomains, List<String> tcpDomains) throws WxErrorException {
+    JsonObject requestJson = new JsonObject();
+    requestJson.addProperty("action", action);
+    if (!"get".equals(action)) {
+      requestJson.add("requestdomain", toJsonArray(requestDomains));
+      requestJson.add("wsrequestdomain", toJsonArray(wsRequestDomains));
+      requestJson.add("uploaddomain", toJsonArray(uploadDomains));
+      requestJson.add("downloaddomain", toJsonArray(downloadDomains));
+      requestJson.add("udpdomain", toJsonArray(udpDomains));
+      requestJson.add("tcpdomain", toJsonArray(tcpDomains));
+    }
+
+    String response = post(API_MODIFY_WXA_SERVER_DOMAIN, requestJson.toString());
+    return WxOpenGsonBuilder.create().fromJson(response, WxOpenMaDomainResult.class);
+  }
+
+  @Override
+  public WxOpenMaDomainConfirmFileResult getDomainConfirmFile() throws WxErrorException {
+    String responseContent = post(API_GET_DOMAIN_CONFIRM_FILE, "{}");
+    return WxOpenMaDomainConfirmFileResult.fromJson(responseContent);
+  }
+
+  @Override
+  public String modifyWxaJumpDomain(String action, List<String> domainList) throws WxErrorException {
+    JsonObject requestJson = new JsonObject();
+    requestJson.addProperty("action", action);
+    if (!"get".equals(action)) {
+      requestJson.add("webviewdomain", toJsonArray(domainList));
+    }
+    return post(API_MODIFY_WXA_JUMP_DOMAIN, requestJson.toString());
+  }
+
+  @Override
+  public WxOpenMaWebDomainResult modifyWxaJumpDomainInfo(String action, List<String> domainList) throws WxErrorException {
+    String response = this.modifyWxaJumpDomain(action, domainList);
+    return WxOpenGsonBuilder.create().fromJson(response, WxOpenMaWebDomainResult.class);
+  }
+
+  private JsonArray toJsonArray(List<String> list) {
+    JsonArray jsonArray = new JsonArray();
+    if (list != null) {
+      for (String item : list) {
+        jsonArray.add(item);
+      }
+    }
+    return jsonArray;
   }
 }

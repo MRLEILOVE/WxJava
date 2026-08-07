@@ -12,6 +12,7 @@ import me.chanjar.weixin.cp.config.WxCpConfigStorage;
 import okhttp3.*;
 
 import java.io.IOException;
+import java.util.concurrent.locks.Lock;
 
 import static me.chanjar.weixin.cp.constant.WxCpApiPathConsts.GET_TOKEN;
 
@@ -55,12 +56,15 @@ public class WxCpServiceOkHttpImpl extends BaseWxCpServiceImpl<OkHttpClient, OkH
           this.configStorage.getCorpSecret()))
         .get()
         .build();
-      String resultContent = null;
-      try {
-        Response response = client.newCall(request).execute();
+      String resultContent;
+      try (Response response = client.newCall(request).execute()) {
+        if (response.body() == null) {
+          throw new WxErrorException("请求access token失败：响应内容为空");
+        }
         resultContent = response.body().string();
       } catch (IOException e) {
         log.error(e.getMessage(), e);
+        throw new WxErrorException(e);
       }
 
       WxError error = WxError.fromJson(resultContent, WxType.CP);
@@ -75,6 +79,105 @@ public class WxCpServiceOkHttpImpl extends BaseWxCpServiceImpl<OkHttpClient, OkH
   }
 
   @Override
+  public String getContactAccessToken(boolean forceRefresh) throws WxErrorException {
+    if (!this.configStorage.isContactAccessTokenExpired() && !forceRefresh) {
+      return this.configStorage.getContactAccessToken();
+    }
+
+    Lock lock = this.configStorage.getContactAccessTokenLock();
+    lock.lock();
+    try {
+      // 拿到锁之后，再次判断一下最新的token是否过期，避免重刷
+      if (!this.configStorage.isContactAccessTokenExpired() && !forceRefresh) {
+        return this.configStorage.getContactAccessToken();
+      }
+      // 使用通讯录同步secret获取access_token
+      String contactSecret = this.configStorage.getContactSecret();
+      if (contactSecret == null || contactSecret.trim().isEmpty()) {
+        throw new WxErrorException("通讯录同步secret未配置");
+      }
+      //得到httpClient
+      OkHttpClient client = getRequestHttpClient();
+      //请求的request
+      Request request = new Request.Builder()
+        .url(String.format(this.configStorage.getApiUrl(GET_TOKEN), this.configStorage.getCorpId(),
+          contactSecret))
+        .get()
+        .build();
+      String resultContent;
+      try (Response response = client.newCall(request).execute()) {
+        if (response.body() == null) {
+          throw new WxErrorException("请求通讯录同步access token失败：响应内容为空");
+        }
+        resultContent = response.body().string();
+      } catch (IOException e) {
+        log.error(e.getMessage(), e);
+        throw new WxErrorException(e);
+      }
+      WxError error = WxError.fromJson(resultContent, WxType.CP);
+      if (error.getErrorCode() != 0) {
+        throw new WxErrorException(error);
+      }
+      WxAccessToken accessToken = WxAccessToken.fromJson(resultContent);
+      this.configStorage.updateContactAccessToken(accessToken.getAccessToken(),
+        accessToken.getExpiresIn());
+    } finally {
+      lock.unlock();
+    }
+    return this.configStorage.getContactAccessToken();
+  }
+
+  @Override
+  public String getMsgAuditAccessToken(boolean forceRefresh) throws WxErrorException {
+    if (!this.configStorage.isMsgAuditAccessTokenExpired() && !forceRefresh) {
+      return this.configStorage.getMsgAuditAccessToken();
+    }
+
+    Lock lock = this.configStorage.getMsgAuditAccessTokenLock();
+    lock.lock();
+    try {
+      // 拿到锁之后，再次判断一下最新的token是否过期，避免重刷
+      if (!this.configStorage.isMsgAuditAccessTokenExpired() && !forceRefresh) {
+        return this.configStorage.getMsgAuditAccessToken();
+      }
+      // 使用会话存档secret获取access_token
+      String msgAuditSecret = this.configStorage.getMsgAuditSecret();
+      if (msgAuditSecret == null || msgAuditSecret.trim().isEmpty()) {
+        throw new WxErrorException("会话存档secret未配置");
+      }
+      //得到httpClient
+      OkHttpClient client = getRequestHttpClient();
+      //请求的request
+      Request request = new Request.Builder()
+        .url(String.format(this.configStorage.getApiUrl(GET_TOKEN), this.configStorage.getCorpId(),
+          msgAuditSecret))
+        .get()
+        .build();
+      String resultContent;
+      try (Response response = client.newCall(request).execute()) {
+        if (response.body() == null) {
+          throw new WxErrorException("请求会话存档access token失败：响应内容为空");
+        }
+        resultContent = response.body().string();
+      } catch (IOException e) {
+        log.error(e.getMessage(), e);
+        throw new WxErrorException(e);
+      }
+
+      WxError error = WxError.fromJson(resultContent, WxType.CP);
+      if (error.getErrorCode() != 0) {
+        throw new WxErrorException(error);
+      }
+      WxAccessToken accessToken = WxAccessToken.fromJson(resultContent);
+      this.configStorage.updateMsgAuditAccessToken(accessToken.getAccessToken(),
+        accessToken.getExpiresIn());
+    } finally {
+      lock.unlock();
+    }
+    return this.configStorage.getMsgAuditAccessToken();
+  }
+
+  @Override
   public void initHttp() {
     log.debug("WxCpServiceOkHttpImpl initHttp");
     //设置代理
@@ -86,12 +189,12 @@ public class WxCpServiceOkHttpImpl extends BaseWxCpServiceImpl<OkHttpClient, OkH
       OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
       clientBuilder.proxy(getRequestHttpProxy().getProxy());
       //设置授权
-      clientBuilder.authenticator(new Authenticator() {
+      clientBuilder.proxyAuthenticator(new Authenticator() {
         @Override
         public Request authenticate(Route route, Response response) throws IOException {
           String credential = Credentials.basic(httpProxy.getProxyUsername(), httpProxy.getProxyPassword());
           return response.request().newBuilder()
-            .header("Authorization", credential)
+            .header("Proxy-Authorization", credential)
             .build();
         }
       });

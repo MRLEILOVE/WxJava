@@ -57,7 +57,7 @@ public class WxMaInternetServiceImpl implements WxMaInternetService {
   private WxMaInternetResponse getWxMaInternetResponse(String url) throws WxErrorException {
     String responseContent = this.wxMaService.post(url, "");
     WxMaInternetResponse response = WxMaGsonBuilder.create().fromJson(responseContent, WxMaInternetResponse.class);
-    if (response.getErrcode() == -1) {
+    if (response.getErrcode() != null && response.getErrcode() != 0) {
       throw new WxErrorException(WxError.fromJson(responseContent, WxType.MiniApp));
     }
     return response;

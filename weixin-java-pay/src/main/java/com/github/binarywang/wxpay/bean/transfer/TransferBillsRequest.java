@@ -87,6 +87,44 @@ public class TransferBillsRequest implements Serializable {
   @SerializedName("transfer_scene_report_infos")
   private List<TransferSceneReportInfo> transferSceneReportInfos;
 
+  /**
+   * 自动收款授权信息
+   */
+  @SerializedName("authorization_info")
+  private AuthorizationInfo authorizationInfo;
+
+  /**
+   * 微信免确认收款授权单号
+   */
+  @SerializedName("authorization_id")
+  private String authorizationId;
+
+  /**
+   * 商户侧授权单号
+   */
+  @SerializedName("out_authorization_no")
+  private String outAuthorizationNo;
+
+  /**
+   * 收款授权模式
+   * <pre>
+   * 字段名：收款授权模式
+   * 变量名：receipt_authorization_mode
+   * 是否必填：否
+   * 类型：string
+   * 描述：
+   *  控制收款方式的授权模式，可选值：
+   *  - CONFIRM_RECEIPT_AUTHORIZATION：需确认收款授权模式（默认值）
+   *  - NO_CONFIRM_RECEIPT_AUTHORIZATION：免确认收款授权模式（需要用户事先授权）
+   *  为空时，默认为需确认收款授权模式
+   * 示例值：NO_CONFIRM_RECEIPT_AUTHORIZATION
+   * </pre>
+   * 
+   * @see com.github.binarywang.wxpay.constant.WxPayConstants.ReceiptAuthorizationMode
+   */
+  @SerializedName("receipt_authorization_mode")
+  private String receiptAuthorizationMode;
+
 
   @Data
   @Builder(builderMethodName = "newBuilder")
@@ -104,5 +142,29 @@ public class TransferBillsRequest implements Serializable {
      */
     @SerializedName("info_content")
     private String infoContent;
+  }
+
+  @Data
+  @Builder(builderMethodName = "newBuilder")
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class AuthorizationInfo {
+    /**
+     * 用户展示名称
+     */
+    @SerializedName("user_display_name")
+    private String userDisplayName;
+
+    /**
+     * 商户侧授权单号
+     */
+    @SerializedName("out_authorization_no")
+    private String outAuthorizationNo;
+
+    /**
+     * 自动收款授权结果通知地址
+     */
+    @SerializedName("authorization_notify_url")
+    private String authorizationNotifyUrl;
   }
 }

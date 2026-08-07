@@ -124,6 +124,17 @@ public interface WxOpenComponentService {
    * 快速创建小程序接口.
    */
   String FAST_REGISTER_WEAPP_URL = "https://api.weixin.qq.com/cgi-bin/component/fastregisterweapp?action=create";
+
+  /**
+   * 快速创建企业小程序接口.
+   */
+  String FAST_REGISTER_ENTERPRISE_WEAPP_URL = "https://api.weixin.qq.com/wxa/component/fastregisterenterpriseweapp?action=create";
+
+  /**
+   * 快速创建企业小程序查询接口.
+   */
+  String FAST_REGISTER_ENTERPRISE_WEAPP_QUERY_URL = "https://api.weixin.qq.com/wxa/component/fastregisterenterpriseweapp?action=query";
+
   /**
    * The constant FAST_REGISTER_WEAPP_SEARCH_URL.
    */
@@ -202,6 +213,21 @@ public interface WxOpenComponentService {
   String BATCH_SHARE_ENV = "https://api.weixin.qq.com/componenttcb/batchshareenv";
 
   String COMPONENT_CLEAR_QUOTA_URL = "https://api.weixin.qq.com/cgi-bin/component/clear_quota/v2";
+
+  /**
+   * 设置第三方平台服务器域名
+   */
+  String API_MODIFY_WXA_SERVER_DOMAIN = "https://api.weixin.qq.com/cgi-bin/component/modify_wxa_server_domain";
+
+  /**
+   * 获取第三方平台业务域名校验文件
+   */
+  String API_GET_DOMAIN_CONFIRM_FILE = "https://api.weixin.qq.com/cgi-bin/component/get_domain_confirmfile";
+
+  /**
+   * 设置第三方平台业务域名
+   */
+  String API_MODIFY_WXA_JUMP_DOMAIN = "https://api.weixin.qq.com/cgi-bin/component/modify_wxa_jump_domain";
 
   /**
    * Gets wx mp service by appid.
@@ -596,7 +622,7 @@ public interface WxOpenComponentService {
 
   /**
    * https://open.weixin.qq.com/cgi-bin/showdocument?action=dir_list&t=resource/res_list&verify=1&id=21538208049W8uwq&token=&lang=zh_CN
-   * 第三方平台快速创建小程序.
+   * 第三方平台快速创建小程序. 2026-04-30 已下线
    * 注意：创建任务逻辑串行，单次任务结束后才可以使用相同信息下发第二次任务，请注意规避任务阻塞
    *
    * @param name               企业名（需与工商部门登记信息一致）
@@ -607,8 +633,33 @@ public interface WxOpenComponentService {
    * @param componentPhone     第三方联系电话（方便法人与第三方联系）
    * @return . wx open result
    * @throws WxErrorException .
+   * @deprecated 2026-04-30 接口已经下线
    */
+  @Deprecated
   WxOpenResult fastRegisterWeapp(String name, String code, String codeType, String legalPersonaWechat, String legalPersonaName, String componentPhone) throws WxErrorException;
+
+  /**
+   * https://developers.weixin.qq.com/doc/oplatform/openApi/register-management/fast-registration-ent/api_fastregisterenterpriseweapp.html
+   * 第三方平台快速创建企业小程序.
+   * 注意：创建任务逻辑串行，单次任务结束后才可以使用相同信息下发第二次任务，请注意规避任务阻塞
+   *
+   * @param name               企业名（需与工商部门登记信息一致）
+   * @param code               企业代码，18位统一信用代码
+   * @param componentPhone     第三方联系电话（方便法人与第三方联系）
+   * @return . wx open result
+   * @throws WxErrorException .
+   */
+  WxOpenRegisterPersonalWeappResult fastRegisterEnterpriseWeapp(String name, String code, String componentPhone) throws WxErrorException;
+
+  /**
+   * https://developers.weixin.qq.com/doc/oplatform/openApi/register-management/fast-registration-ent/api_fastregisterenterpriseweapp.html
+   * 查询企业小程序注册任务状态
+   *
+   * @param taskid 任务ID
+   * @return the wx open result
+   * @throws WxErrorException
+   */
+  WxOpenRegisterPersonalWeappResult fastRegisterEnterpriseWeappQuery(String taskid) throws WxErrorException;
 
   /**
    * https://open.weixin.qq.com/cgi-bin/showdocument?action=dir_list&t=resource/res_list&verify=1&id=21538208049W8uwq&token=&lang=zh_CN
@@ -1116,5 +1167,54 @@ public interface WxOpenComponentService {
    * @throws WxErrorException .
    */
   WxOpenResult applySetOrderPathInfo(WxOpenMaApplyOrderPathInfo info) throws WxErrorException;
+
+  /**
+   * 设置第三方平台服务器域名
+   * <a href="https://developers.weixin.qq.com/doc/oplatform/Third-party_Platforms/2.0/api/ThirdParty/domain/modify_server_domain.html">文档地址</a>
+   *
+   * @param action           add添加, delete删除, set覆盖, get获取
+   * @param requestDomains   request 合法域名；当 action 是 get 时不需要此字段
+   * @param wsRequestDomains socket 合法域名；当 action 是 get 时不需要此字段
+   * @param uploadDomains    uploadFile 合法域名；当 action 是 get 时不需要此字段
+   * @param downloadDomains  downloadFile 合法域名；当 action 是 get 时不需要此字段
+   * @param tcpDomains       tcp 合法域名；当 action 是 get 时不需要此字段
+   * @param udpDomains       udp 合法域名；当 action 是 get 时不需要此字段
+   * @return the wx open ma domain result
+   * @throws WxErrorException the wx error exception
+   */
+  WxOpenMaDomainResult modifyWxaServerDomain(String action, List<String> requestDomains, List<String> wsRequestDomains,
+                                             List<String> uploadDomains, List<String> downloadDomains,
+                                             List<String> udpDomains, List<String> tcpDomains) throws WxErrorException;
+
+  /**
+   * 获取第三方平台业务域名校验文件
+   * <a href="https://developers.weixin.qq.com/doc/oplatform/Third-party_Platforms/2.0/api/ThirdParty/domain/get_domain_confirmfile.html">文档地址</a>
+   *
+   * @return 业务域名校验文件信息
+   * @throws WxErrorException 操作失败时抛出，具体错误码请看文档
+   */
+  WxOpenMaDomainConfirmFileResult getDomainConfirmFile() throws WxErrorException;
+
+  /**
+   * 设置第三方平台业务域名
+   * <a href="https://developers.weixin.qq.com/doc/oplatform/Third-party_Platforms/2.0/api/ThirdParty/domain/modify_jump_domain.html">文档地址</a>
+   *
+   * @param action     add添加, delete删除, set覆盖, get获取
+   * @param domainList the domain list
+   * @return 直接返回字符串
+   * @throws WxErrorException the wx error exception
+   */
+  String modifyWxaJumpDomain(String action, List<String> domainList) throws WxErrorException;
+
+  /**
+   * 设置第三方平台业务域名
+   * <a href="https://developers.weixin.qq.com/doc/oplatform/Third-party_Platforms/2.0/api/ThirdParty/domain/modify_jump_domain.html">文档地址</a>
+   *
+   * @param action     add添加, delete删除, set覆盖, get获取
+   * @param domainList the domain list
+   * @return web view domain info
+   * @throws WxErrorException the wx error exception
+   */
+  WxOpenMaWebDomainResult modifyWxaJumpDomainInfo(String action, List<String> domainList) throws WxErrorException;
 
 }

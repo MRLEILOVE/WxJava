@@ -1,5 +1,6 @@
 package me.chanjar.weixin.cp.config.impl;
 
+import com.tencent.wework.Finance;
 import me.chanjar.weixin.common.bean.WxAccessToken;
 import me.chanjar.weixin.common.util.http.apache.ApacheHttpClientBuilder;
 import me.chanjar.weixin.cp.config.WxCpConfigStorage;
@@ -29,7 +30,7 @@ public class WxCpDefaultConfigImpl implements WxCpConfigStorage, Serializable {
   /**
    * The Agent id.
    */
-  protected volatile Integer agentId;
+  protected volatile Long agentId;
   /**
    * The Jsapi ticket lock.
    */
@@ -44,11 +45,48 @@ public class WxCpDefaultConfigImpl implements WxCpConfigStorage, Serializable {
   private volatile String aesKey;
   private volatile long expiresTime;
   /**
+   * 通讯录同步secret及其access token
+   */
+  private volatile String contactSecret;
+  private volatile String contactAccessToken;
+  private volatile long contactAccessTokenExpiresTime;
+  /**
+   * 通讯录同步access token锁
+   */
+  protected transient Lock contactAccessTokenLock = new ReentrantLock();
+  /**
    * 会话存档私钥以及sdk路径
    */
   private volatile String msgAuditSecret;
   private volatile String msgAuditPriKey;
   private volatile String msgAuditLibPath;
+  /**
+   * 会话存档access token及其过期时间
+   */
+  private volatile String msgAuditAccessToken;
+  private volatile long msgAuditAccessTokenExpiresTime;
+  /**
+   * 会话存档access token锁
+   */
+  protected transient Lock msgAuditAccessTokenLock = new ReentrantLock();
+  /**
+   * 会话存档SDK及其过期时间
+   *
+   * @deprecated SDK 生命周期已改由 {@link me.chanjar.weixin.cp.api.impl.WxCpMsgAuditServiceImpl} 内部的
+   *             ThreadLocal 模式管理，此字段保留仅为向后兼容。
+   */
+  @Deprecated
+  private volatile long msgAuditSdk;
+  /** @deprecated 同 msgAuditSdk */
+  @Deprecated
+  private volatile long msgAuditSdkExpiresTime;
+  /**
+   * 会话存档SDK引用计数
+   *
+   * @deprecated 引用计数机制已废弃，由 ThreadLocal 模式替代。
+   */
+  @Deprecated
+  private volatile int msgAuditSdkRefCount;
   private volatile String oauth2redirectUri;
   private volatile String httpProxyHost;
   private volatile int httpProxyPort;
@@ -282,7 +320,7 @@ public class WxCpDefaultConfigImpl implements WxCpConfigStorage, Serializable {
   }
 
   @Override
-  public Integer getAgentId() {
+  public Long getAgentId() {
     return this.agentId;
   }
 
@@ -291,8 +329,12 @@ public class WxCpDefaultConfigImpl implements WxCpConfigStorage, Serializable {
    *
    * @param agentId the agent id
    */
-  public void setAgentId(Integer agentId) {
+  public void setAgentId(Long agentId) {
     this.agentId = agentId;
+  }
+
+  public void setAgentId(long agentId) {
+    this.setAgentId(Long.valueOf(agentId));
   }
 
   /**
@@ -438,16 +480,183 @@ public class WxCpDefaultConfigImpl implements WxCpConfigStorage, Serializable {
   }
 
   @Override
+  public String getContactSecret() {
+    return this.contactSecret;
+  }
+
+  /**
+   * 设置通讯录同步secret.
+   *
+   * @param contactSecret 通讯录同步secret
+   * @return this
+   */
+  public WxCpDefaultConfigImpl setContactSecret(String contactSecret) {
+    this.contactSecret = contactSecret;
+    return this;
+  }
+
+  @Override
+  public String getContactAccessToken() {
+    return this.contactAccessToken;
+  }
+
+  @Override
+  public Lock getContactAccessTokenLock() {
+    return this.contactAccessTokenLock;
+  }
+
+  @Override
+  public boolean isContactAccessTokenExpired() {
+    return System.currentTimeMillis() > this.contactAccessTokenExpiresTime;
+  }
+
+  @Override
+  public void expireContactAccessToken() {
+    this.contactAccessTokenExpiresTime = 0;
+  }
+
+  @Override
+  public synchronized void updateContactAccessToken(String accessToken, int expiresInSeconds) {
+    this.contactAccessToken = accessToken;
+    // 预留200秒的时间
+    this.contactAccessTokenExpiresTime = System.currentTimeMillis() + (expiresInSeconds - 200) * 1000L;
+  }
+
+  @Override
   public String getMsgAuditSecret() {
     return this.msgAuditSecret;
   }
 
   /**
    * 设置会话存档secret
-   * @param msgAuditSecret
+   *
+   * @param msgAuditSecret the msg audit secret
+   * @return this
    */
   public WxCpDefaultConfigImpl setMsgAuditSecret(String msgAuditSecret) {
     this.msgAuditSecret = msgAuditSecret;
     return this;
+  }
+
+  @Override
+  public String getMsgAuditAccessToken() {
+    return this.msgAuditAccessToken;
+  }
+
+  @Override
+  public Lock getMsgAuditAccessTokenLock() {
+    return this.msgAuditAccessTokenLock;
+  }
+
+  @Override
+  public boolean isMsgAuditAccessTokenExpired() {
+    return System.currentTimeMillis() > this.msgAuditAccessTokenExpiresTime;
+  }
+
+  @Override
+  public void expireMsgAuditAccessToken() {
+    this.msgAuditAccessTokenExpiresTime = 0;
+  }
+
+  @Override
+  public synchronized void updateMsgAuditAccessToken(String accessToken, int expiresInSeconds) {
+    this.msgAuditAccessToken = accessToken;
+    // 预留200秒的时间
+    this.msgAuditAccessTokenExpiresTime = System.currentTimeMillis() + (expiresInSeconds - 200) * 1000L;
+  }
+
+  @Override
+  @Deprecated
+  public long getMsgAuditSdk() {
+    return this.msgAuditSdk;
+  }
+
+  @Override
+  @Deprecated
+  public boolean isMsgAuditSdkExpired() {
+    return System.currentTimeMillis() > this.msgAuditSdkExpiresTime;
+  }
+
+  @Override
+  @Deprecated
+  public synchronized void updateMsgAuditSdk(long sdk, int expiresInSeconds) {
+    // 如果有旧的SDK且不同于新的SDK，需要销毁旧的SDK
+    if (this.msgAuditSdk > 0 && this.msgAuditSdk != sdk) {
+      // 无论旧SDK是否仍有引用，都需要销毁它以避免资源泄漏
+      // 如果有飞行中的请求使用旧SDK，这些请求可能会失败，但这比资源泄漏更安全
+      Finance.DestroySdk(this.msgAuditSdk);
+    }
+    this.msgAuditSdk = sdk;
+    // 预留200秒的时间
+    this.msgAuditSdkExpiresTime = System.currentTimeMillis() + (expiresInSeconds - 200) * 1000L;
+    // 重置引用计数，因为这是一个全新的SDK
+    this.msgAuditSdkRefCount = 0;
+  }
+
+  @Override
+  @Deprecated
+  public void expireMsgAuditSdk() {
+    this.msgAuditSdkExpiresTime = 0;
+  }
+
+  @Override
+  @Deprecated
+  public synchronized int incrementMsgAuditSdkRefCount(long sdk) {
+    if (this.msgAuditSdk == sdk && sdk > 0) {
+      return ++this.msgAuditSdkRefCount;
+    }
+    return -1; // SDK不匹配，返回-1表示错误
+  }
+
+  @Override
+  @Deprecated
+  public synchronized int decrementMsgAuditSdkRefCount(long sdk) {
+    if (this.msgAuditSdk == sdk && this.msgAuditSdkRefCount > 0) {
+      int newCount = --this.msgAuditSdkRefCount;
+      // 当引用计数降为0且SDK已过期时，才销毁SDK以释放资源
+      // 如果SDK尚未过期，保留SDK缓存以供后续调用复用，避免频繁初始化和销毁
+      if (newCount == 0 && this.msgAuditSdk == sdk && isMsgAuditSdkExpired()) {
+        Finance.DestroySdk(sdk);
+        this.msgAuditSdk = 0;
+        this.msgAuditSdkExpiresTime = 0;
+      }
+      return newCount;
+    }
+    return -1; // SDK不匹配或引用计数已为0，返回-1表示错误
+  }
+
+  @Override
+  @Deprecated
+  public synchronized int getMsgAuditSdkRefCount(long sdk) {
+    if (this.msgAuditSdk == sdk && sdk > 0) {
+      return this.msgAuditSdkRefCount;
+    }
+    return -1; // SDK不匹配，返回-1表示错误
+  }
+
+  @Override
+  @Deprecated
+  public synchronized long acquireMsgAuditSdk() {
+    // 检查SDK是否有效（已初始化且未过期）
+    if (this.msgAuditSdk > 0 && !isMsgAuditSdkExpired()) {
+      this.msgAuditSdkRefCount++;
+      return this.msgAuditSdk;
+    }
+    return 0; // SDK未初始化或已过期
+  }
+
+  @Override
+  @Deprecated
+  public synchronized void releaseMsgAuditSdk(long sdk) {
+    if (this.msgAuditSdk == sdk && this.msgAuditSdkRefCount > 0) {
+      int newCount = --this.msgAuditSdkRefCount;
+      // 当引用计数降为0且SDK已过期时，才销毁SDK以释放资源
+      // 如果SDK尚未过期，保留SDK缓存以供后续调用复用，避免频繁初始化和销毁
+      if (newCount == 0 && this.msgAuditSdk == sdk && isMsgAuditSdkExpired()) {
+        Finance.DestroySdk(sdk);
+        this.msgAuditSdk = 0;
+        this.msgAuditSdkExpiresTime = 0;
+      }
+    }
   }
 }

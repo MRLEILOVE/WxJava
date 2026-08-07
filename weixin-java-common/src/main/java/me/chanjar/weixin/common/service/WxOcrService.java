@@ -7,12 +7,15 @@ import me.chanjar.weixin.common.bean.ocr.WxOcrCommResult;
 import me.chanjar.weixin.common.bean.ocr.WxOcrDrivingLicenseResult;
 import me.chanjar.weixin.common.bean.ocr.WxOcrDrivingResult;
 import me.chanjar.weixin.common.bean.ocr.WxOcrIdCardResult;
+import me.chanjar.weixin.common.bean.ocr.WxOcrMenuResult;
 
 import java.io.File;
 
 /**
  * 基于小程序或 H5 的身份证、银行卡、行驶证 OCR 识别.
- * https://mp.weixin.qq.com/wiki?t=resource/res_main&id=21516712284rHWMX
+ * <p>
+ * 参考：{@code https://mp.weixin.qq.com/wiki?t=resource/res_main&id=21516712284rHWMX}
+ * </p>
  *
  * @author <a href="https://github.com/binarywang">Binary Wang</a>
  * created on  2019-06-22
@@ -128,4 +131,22 @@ public interface WxOcrService {
    * @throws WxErrorException .
    */
   WxOcrCommResult comm(File imgFile) throws WxErrorException;
+
+  /**
+   * 菜单OCR识别接口
+   * 文件大小限制：小于2M
+   * @param imgUrl 图片url地址
+   * @return WxOcrMenuResult
+   * @throws WxErrorException .
+   */
+  WxOcrMenuResult menu(String imgUrl) throws WxErrorException;
+
+  /**
+   * 菜单OCR识别接口
+   * 文件大小限制：小于2M
+   * @param imgFile 图片文件对象
+   * @return WxOcrMenuResult
+   * @throws WxErrorException .
+   */
+  WxOcrMenuResult menu(File imgFile) throws WxErrorException;
 }

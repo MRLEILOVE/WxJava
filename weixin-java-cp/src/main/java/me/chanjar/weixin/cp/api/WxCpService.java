@@ -58,6 +58,32 @@ public interface WxCpService extends WxService {
   String getAccessToken(boolean forceRefresh) throws WxErrorException;
 
   /**
+   * <pre>
+   * 获取通讯录同步access_token，本方法线程安全
+   * 通讯录同步相关接口仅支持通过"通讯录同步secret"调用，需要使用独立的access_token
+   * 详情请见: https://developer.work.weixin.qq.com/document/path/91579
+   * </pre>
+   *
+   * @param forceRefresh 强制刷新
+   * @return 通讯录同步专用的access token
+   * @throws WxErrorException the wx error exception
+   */
+  String getContactAccessToken(boolean forceRefresh) throws WxErrorException;
+
+  /**
+   * <pre>
+   * 获取会话存档access_token，本方法线程安全
+   * 会话存档相关接口需要使用会话存档secret获取单独的access_token
+   * 详情请见: https://developer.work.weixin.qq.com/document/path/91782
+   * </pre>
+   *
+   * @param forceRefresh 强制刷新
+   * @return 会话存档专用的access token
+   * @throws WxErrorException the wx error exception
+   */
+  String getMsgAuditAccessToken(boolean forceRefresh) throws WxErrorException;
+
+  /**
    * 获得jsapi_ticket,不强制刷新jsapi_ticket
    *
    * @return the jsapi ticket
@@ -193,6 +219,45 @@ public interface WxCpService extends WxService {
    * @throws WxErrorException the wx error exception
    */
   String postWithoutToken(String url, String postData) throws WxErrorException;
+
+  /**
+   * <pre>
+   * 使用会话存档access token发起post请求
+   * 会话存档相关API需要使用会话存档专用的secret获取独立的access token
+   * </pre>
+   *
+   * @param url      接口地址
+   * @param postData 请求body字符串
+   * @return the string
+   * @throws WxErrorException the wx error exception
+   */
+  String postForMsgAudit(String url, String postData) throws WxErrorException;
+
+  /**
+   * <pre>
+   * 使用通讯录同步access token发起get请求
+   * 通讯录同步相关API需要使用通讯录同步专用的secret获取独立的access token
+   * </pre>
+   *
+   * @param url        接口地址
+   * @param queryParam 请求参数
+   * @return the string
+   * @throws WxErrorException the wx error exception
+   */
+  String getForContact(String url, String queryParam) throws WxErrorException;
+
+  /**
+   * <pre>
+   * 使用通讯录同步access token发起post请求
+   * 通讯录同步相关API需要使用通讯录同步专用的secret获取独立的access token
+   * </pre>
+   *
+   * @param url      接口地址
+   * @param postData 请求body字符串
+   * @return the string
+   * @throws WxErrorException the wx error exception
+   */
+  String postForContact(String url, String postData) throws WxErrorException;
 
   /**
    * <pre>
@@ -456,6 +521,13 @@ public interface WxCpService extends WxService {
   WxCpOaWeDriveService getOaWeDriveService();
 
   /**
+   * 获取OA效率工具 文档的服务类对象
+   *
+   * @return oa we doc service
+   */
+  WxCpOaWeDocService getOaWeDocService();
+
+  /**
    * 获取会话存档相关接口的服务类对象
    *
    * @return msg audit service
@@ -584,7 +656,21 @@ public interface WxCpService extends WxService {
   /**
    * 企业互联的服务类对象
    *
-   * @return
+   * @return 企业互联服务对象
    */
   WxCpCorpGroupService getCorpGroupService();
+
+  /**
+   * 获取智能机器人服务
+   *
+   * @return 智能机器人服务 intelligent robot service
+   */
+  WxCpIntelligentRobotService getIntelligentRobotService();
+
+  /**
+   * 获取人事助手服务
+   *
+   * @return 人事助手服务 hr service
+   */
+  WxCpHrService getHrService();
 }

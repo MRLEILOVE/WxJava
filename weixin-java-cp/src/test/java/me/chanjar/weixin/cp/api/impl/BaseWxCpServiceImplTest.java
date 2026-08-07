@@ -102,6 +102,16 @@ public class BaseWxCpServiceImplTest {
       }
 
       @Override
+      public String getMsgAuditAccessToken(boolean forceRefresh) throws WxErrorException {
+        return "mock_msg_audit_access_token";
+      }
+
+      @Override
+      public String getContactAccessToken(boolean forceRefresh) throws WxErrorException {
+        return "mock_contact_access_token";
+      }
+
+      @Override
       public void initHttp() {
 
       }
@@ -111,7 +121,7 @@ public class BaseWxCpServiceImplTest {
         return config;
       }
     };
-    config.setAgentId(1);
+    config.setAgentId(1L);
     service.setWxCpConfigStorage(config);
     RequestExecutor<Object, Object> re = mock(RequestExecutor.class);
 

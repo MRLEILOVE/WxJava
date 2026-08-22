@@ -166,6 +166,8 @@ public class WxChannelApiUrlConstants {
     String SPU_GET_STOCK_BATCH_URL = "https://api.weixin.qq.com/channels/ec/product/stock/batchget";
     /** 更新商品库存 */
     String SPU_UPDATE_STOCK_URL = "https://api.weixin.qq.com/channels/ec/product/stock/update";
+    /** 获取库存流水 */
+    String SPU_GET_STOCK_FLOW_URL = "https://api.weixin.qq.com/channels/ec/product/stock/getflow";
     /** 添加非卖商品 */
     String GIFT_PRODUCT_ADD_URL = "https://api.weixin.qq.com/channels/ec/product/gift/add";
     /** 更新非卖商品 */
@@ -192,6 +194,21 @@ public class WxChannelApiUrlConstants {
     String STOP_LIMIT_TASK_URL = "https://api.weixin.qq.com/channels/ec/product/limiteddiscounttask/stop";
     /** 删除限时抢购任务 */
     String DELETE_LIMIT_TASK_URL = "https://api.weixin.qq.com/channels/ec/product/limiteddiscounttask/delete";
+    /** 更新限时抢购任务 */
+    String UPDATE_LIMIT_TASK_URL = "https://api.weixin.qq.com/channels/ec/product/limiteddiscounttask/update";
+    /** 发品前校验 */
+    String CATEGORY_PRE_CHECK_URL = "https://api.weixin.qq.com/channels/ec/product/categoryprecheck";
+    /** 商品品牌推荐 */
+    String PRODUCT_BRAND_RECOMMEND_URL = "https://api.weixin.qq.com/channels/ec/product/productbrandrecommend";
+    /** 站内外商品属性映射 */
+    String EXTERNAL_PRODUCT_MAPPING_URL = "https://api.weixin.qq.com/channels/ec/product/externalproductmapping";
+    /** 商品属性映射及推荐 */
+    String EXTERNAL_PRODUCT_MAPPING_NEW_URL =
+      "https://api.weixin.qq.com/channels/ec/product/externalproductmappingnew";
+    /** 商品立即开售 */
+    String BEGIN_TIMING_SALE_URL = "https://api.weixin.qq.com/channels/ec/product/begintimingsale";
+    /** 取消商品开售 */
+    String CANCEL_TIMING_SALE_URL = "https://api.weixin.qq.com/channels/ec/product/canceltimingsale";
   }
 
   /** 区域仓库 */

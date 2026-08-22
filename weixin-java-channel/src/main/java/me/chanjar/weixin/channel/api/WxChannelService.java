@@ -210,4 +210,13 @@ public interface WxChannelService extends BaseWxChannelService {
    */
   WxChannelFavoriteService getFavoriteService();
 
+  /**
+   * 电子面单服务
+   *
+   * @return 电子面单服务
+   */
+  default WxChannelEwaybillService getEwaybillService() {
+    throw new UnsupportedOperationException("当前 WxChannelService 实现不支持电子面单服务");
+  }
+
 }

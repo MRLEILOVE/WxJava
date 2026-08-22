@@ -298,6 +298,15 @@ public class WxChannelApiUrlConstants {
 
   /** 售后相关接口 */
   public interface AfterSale {
+    String AFTER_SALE_GEN_AFTER_SALE_ORDER_URL = "https://api.weixin.qq.com/channels/ec/aftersale/genaftersaleorder";
+    String AFTER_SALE_REFUND_PRICE_DIFF_URL = "https://api.weixin.qq.com/channels/ec/aftersale/refundpricediff";
+    String AFTER_SALE_APPLY_VIRTUAL_TEL_NUM_URL = "https://api.weixin.qq.com/channels/ec/aftersale/applyvirtualtelnum";
+    String AFTER_SALE_HANDLE_FAST_EXCHANGE_RECEIPT_URL = "https://api.weixin.qq.com/channels/ec/aftersale/handlefastexchangereceipt";
+    String AFTER_SALE_GET_GUARANTEE_ORDER_URL = "https://api.weixin.qq.com/channels/ec/aftersale/getguaranteeorder";
+    String AFTER_SALE_MERCHANT_ACCEPT_GUARANTEE_URL = "https://api.weixin.qq.com/channels/ec/aftersale/merchantacceptguarantee";
+    String AFTER_SALE_MERCHANT_MODIFY_GUARANTEE_URL = "https://api.weixin.qq.com/channels/ec/aftersale/merchantmodifyguarantee";
+    String AFTER_SALE_MERCHANT_PROOF_GUARANTEE_URL = "https://api.weixin.qq.com/channels/ec/aftersale/merchantproofguarantee";
+    String AFTER_SALE_SYNC_WORK_ORDER_URL = "https://api.weixin.qq.com/channels/ec/aftersale/syncworkorder";
 
     /** 获取售后列表 */
     String AFTER_SALE_LIST_URL = "https://api.weixin.qq.com/channels/ec/aftersale/getaftersalelist";

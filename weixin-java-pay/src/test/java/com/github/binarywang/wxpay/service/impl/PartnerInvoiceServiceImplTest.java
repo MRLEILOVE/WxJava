@@ -1,5 +1,6 @@
 package com.github.binarywang.wxpay.service.impl;
 
+import com.github.binarywang.wxpay.service.PartnerInvoiceService;
 import com.github.binarywang.wxpay.service.WxPayService;
 import com.github.binarywang.wxpay.bean.invoice.GeneralInvoiceRequest;
 import com.github.binarywang.wxpay.bean.invoice.PassengerTransportInvoiceRequest;
@@ -18,6 +19,12 @@ import java.util.concurrent.atomic.AtomicReference;
  * {@link PartnerInvoiceServiceImpl} 测试。
  */
 public class PartnerInvoiceServiceImplTest {
+
+  @Test
+  public void shouldKeepPassengerTransportInvoiceMethodSourceCompatible() throws Exception {
+    Assert.assertTrue(PartnerInvoiceService.class
+      .getMethod("issuePassengerTransportInvoice", PassengerTransportInvoiceRequest.class).isDefault());
+  }
 
   @Test
   public void shouldRequestInviteUrlWithOptionalSubMchId() throws Exception {

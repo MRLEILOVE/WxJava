@@ -60,9 +60,12 @@ public interface PartnerInvoiceService {
    *
    * @param request 开票申请
    * @throws WxPayException 微信支付异常
+   * @throws UnsupportedOperationException 当前实现不支持开具旅客运输行业电子发票
    * @see <a href="https://pay.weixin.qq.com/doc/v3/partner/4025863376">官方文档</a>
    */
-  void issuePassengerTransportInvoice(PassengerTransportInvoiceRequest request) throws WxPayException;
+  default void issuePassengerTransportInvoice(PassengerTransportInvoiceRequest request) throws WxPayException {
+    throw new UnsupportedOperationException("当前实现不支持开具旅客运输行业电子发票");
+  }
 
   /**
    * 查询电子发票。

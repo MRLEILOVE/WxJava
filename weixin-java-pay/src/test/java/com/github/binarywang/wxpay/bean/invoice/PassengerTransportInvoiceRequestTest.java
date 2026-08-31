@@ -19,13 +19,12 @@ public class PassengerTransportInvoiceRequestTest {
     request.setSubMchid("1900000109");
     request.setFapiaoApplyId("apply_20260827_001");
 
-    PassengerTransportInvoiceRequest.BuyerInformation buyer =
-      new PassengerTransportInvoiceRequest.BuyerInformation();
+    BuyerInformation buyer = new BuyerInformation();
     buyer.setType("INDIVIDUAL");
     buyer.setName("示例旅客");
     buyer.setPhone("encrypted-phone");
     buyer.setEmail("encrypted-email");
-    buyer.setAmount(1000L);
+    buyer.setAmount(1000);
     request.setBuyerInformation(buyer);
 
     PassengerTransportInvoiceRequest.PassengerInformation passenger =
